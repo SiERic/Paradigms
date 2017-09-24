@@ -1,7 +1,8 @@
 import numpy as np
+from math import log, ceil
 
 
-def split(a, n1):
+def split(a):
     a1, a2 = np.vsplit(a, 2)
     a11, a12 = np.hsplit(a1, 2)
     a21, a22 = np.hsplit(a2, 2)
@@ -15,11 +16,10 @@ def merge(a11, a12, a21, a22):
 
 
 def multiply(a, b):
-    n = a.shape[0]
-    if n == 1:
+    if a.shape[0] == 1:
         return np.dot(a, b)
-    a11, a12, a21, a22 = split(a, n // 2)
-    b11, b12, b21, b22 = split(b, n // 2)
+    a11, a12, a21, a22 = split(a)
+    b11, b12, b21, b22 = split(b)
     p1 = multiply(a11 + a22, b11 + b22)
     p2 = multiply(a21 + a22, b11)
     p3 = multiply(a11, b12 - b22)
@@ -32,34 +32,34 @@ def multiply(a, b):
 
 
 def resize(a, n, N):
-    new_a = np.zeros((N, N))
-    for i in range(n):
-        for j in range(n):
-            new_a[i][j] = a[i][j]
-    return new_a
+    a = np.array([np.concatenate((a[i], np.zeros(N - n, int)), axis=0)
+                  for i in range(n)])
+    return np.concatenate((a, np.zeros((N - n, N), int)), axis=0)
 
 
 def get_right_size(n):
-    k = 1
-    while k < n:
-        k *= 2
-    return k
+    return 2 ** (ceil(log(n, 2)))
+
+
+def read_array(n):
+    return np.array([list(map(int, input().split())) for i in range(n)], dtype=int)
+
+
+def print_array(a, n):
+    print()
+    for i in range(n):
+        for j in range(n):
+            print(int(a[i][j]), end=' ')
+        print()
 
 
 def main():
     n = int(input())
-    a, b = np.empty((n, n), dtype=int), np.empty((n, n), dtype=int)
-    for i in range(n):
-        a[i] = np.array(list(map(int, input().split())))
-    for i in range(n):
-        b[i] = np.array(list(map(int, input().split())))
+    a, b = read_array(n), read_array(n)
 
     N = get_right_size(n)
-    c = multiply(resize(a, n, N), resize(b, n, N))
-    print()
-    for i in range(n):
-        for j in range(n):
-            print(int(c[i][j]), end=' ')
-        print()
+    print_array(multiply(resize(a, n, N), resize(b, n, N)), n)
 
-main()
+
+if __name__ == '__main__':
+    main()
