@@ -32,13 +32,7 @@ def multiply(a, b):
 
 
 def resize(a, n, N):
-    a = np.array([np.concatenate((a[i], np.zeros(N - n, int)), axis=0)
-                  for i in range(n)])
-    return np.concatenate((a, np.zeros((N - n, N), int)), axis=0)
-
-
-def get_right_size(n):
-    return 2 ** (ceil(log(n, 2)))
+    return np.pad(a, (0, N - n), 'constant', constant_values=(0))
 
 
 def read_array(n):
@@ -57,7 +51,7 @@ def main():
     n = int(input())
     a, b = read_array(n), read_array(n)
 
-    N = get_right_size(n)
+    N = 2 ** (ceil(log(n, 2)))
     print_array(multiply(resize(a, n, N), resize(b, n, N)), n)
 
 
