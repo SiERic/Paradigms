@@ -1,7 +1,7 @@
 import sys
-from os import walk
-from os import path
+from os import walk, path
 from hashlib import sha1 as hasher
+from collections import defaultdict
 
 
 def hash_file(filename):
@@ -21,17 +21,14 @@ def main():
         sys.exit(1)
 
     top_dir = sys.argv[1]
-    hash_map = {}
-    for dir_name, dirs, files in walk(top_dir):
+    hash_map = defaultdict(list)
+    for dir_name, _, files in walk(top_dir):
         for file in files:
             filename = path.join(dir_name, file)
             hash = hash_file(filename)
-            if hash not in hash_map:
-                hash_map[hash] = [filename]
-            else:
-                hash_map[hash].append(filename)
+            hash_map[hash].append(filename)
 
-    for hash, files in hash_map.items():
+    for files in hash_map.values():
         if len(files) > 1:
             print(':'.join(files))
 
