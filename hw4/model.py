@@ -35,6 +35,9 @@ class Number:
     def evaluate(self, scope):
         return self
 
+    def __eq__(self, other):
+        return self.value == other.value
+
 
 class Function:
 
@@ -224,6 +227,114 @@ def example():
                  [Number(5), UnaryOperation('-', Number(3))]).evaluate(scope)
 
 
+def test_scope():
+    scope1 = Scope()
+    scope1["a"] = Number(1)
+    scope2 = Scope(scope1)
+    scope2["b"] = Number(2)
+    assert scope1["a"] == Number(1)
+    assert scope2["b"] == Number(2)
+    assert scope2["a"] == Number(1)
+
+
+def test_number():
+    scope = Scope()
+    a = Number(1)
+    assert a.evaluate(scope) == a
+    b = Number(1)
+    assert b == a
+
+
+def test_reference():
+    scope = Scope()
+    scope['a'] = Number(4)
+    assert Reference('a').evaluate(scope) == Number(4)
+
+
+def test_function():
+    scope = Scope()
+    f = Function(("a", "b"), [BinaryOperation(
+        Reference('a'), '+', Reference('b'))])
+    assert f.evaluate(scope) == f
+    f1 = FunctionDefinition("sum", f)
+    f2 = FunctionCall(f1, [Number(1), Number(3)])
+    assert f2.evaluate(scope) == Number(4)
+
+
+def test_read_and_print():
+    scope = Scope()
+    scope['input'] = Read('a')
+    scope['input'].evaluate(scope)
+    print('now it should print your number:')
+    scope['output'] = Print(Reference('a'))
+    scope['output'].evaluate(scope)
+
+
+def test_binary_operation():
+    scope = Scope()
+    scope["a"] = Number(9)
+    scope["b"] = Number(4)
+    scope["a0"] = Number(0)
+    scope["a1"] = Number(1)
+    plus = BinaryOperation(Reference('a'), '+', Reference('b'))
+    minus = BinaryOperation(Reference('a'), '-', Reference('b'))
+    mult = BinaryOperation(Reference('a'), '*', Reference('b'))
+    div = BinaryOperation(Reference('a'), '/', Reference('b'))
+    mod = BinaryOperation(Reference('a'), '%', Reference('b'))
+    eq = BinaryOperation(Reference('a'), '==', Reference('b'))
+    eq2 = BinaryOperation(Reference('a'), '==', Reference('a'))
+    neq = BinaryOperation(Reference('a'), '!=', Reference('b'))
+    neq2 = BinaryOperation(Reference('a'), '!=', Reference('a'))
+    le = BinaryOperation(Reference('a'), '<', Reference('b'))
+    ge = BinaryOperation(Reference('a'), '>', Reference('b'))
+    leq = BinaryOperation(Reference('a'), '<=', Reference('b'))
+    leq2 = BinaryOperation(Reference('a'), '<=', Reference('a'))
+    geq = BinaryOperation(Reference('a'), '>=', Reference('b'))
+    geq2 = BinaryOperation(Reference('a'), '>=', Reference('a'))
+    _or = BinaryOperation(Reference('a0'), '||', Reference('a1'))
+    _and = BinaryOperation(Reference('a0'), '&&', Reference('a1'))
+    assert plus.evaluate(scope) == Number(13)
+    assert minus.evaluate(scope) == Number(5)
+    assert mult.evaluate(scope) == Number(36)
+    assert div.evaluate(scope) == Number(2)
+    assert mod.evaluate(scope) == Number(1)
+    assert eq.evaluate(scope) == Number(0)
+    assert eq2.evaluate(scope) == Number(1)
+    assert neq.evaluate(scope) == Number(1)
+    assert neq2.evaluate(scope) == Number(0)
+    assert le.evaluate(scope) == Number(0)
+    assert ge.evaluate(scope) == Number(1)
+    assert leq.evaluate(scope) == Number(0)
+    assert leq2.evaluate(scope) == Number(1)
+    assert geq.evaluate(scope) == Number(1)
+    assert geq2.evaluate(scope) == Number(1)
+    assert _or.evaluate(scope) == Number(1)
+    assert _and.evaluate(scope) == Number(0)
+
+
+def test_unary_operation():
+    scope = Scope()
+    scope['a'] = Number(4)
+    minus = UnaryOperation('-', Reference('a'))
+    assert minus.evaluate(scope) == Number(-4)
+    _not = UnaryOperation('!', Reference('a'))
+    assert _not.evaluate(scope) == Number(0)
+
+
+def test_condition():
+    scope = Scope()
+    scope["a"] = Number(0)
+    scope["b"] = Number(0)
+    c = Conditional(
+        BinaryOperation(
+            Reference('a'),
+            '||',
+            Reference('b')),
+        [Number(1)],
+        [Number(0)])
+    assert c.evaluate(scope).value == 0
+
+
 def my_tests():
     scope = Scope()
     scope["max"] = Function(('a', 'b'),
@@ -241,10 +352,19 @@ def my_tests():
                                                                          scope['max']),
                                                       [Reference('x'),
                                                        Reference('y')]))])
+    print('it should print the max of your numbers:')
     FunctionCall(FunctionDefinition('print_max', scope[
                  'print_max']), []).evaluate(scope)
 
 
 if __name__ == '__main__':
-    example()
-    my_tests()
+    test_scope()
+    test_number()
+    test_reference()
+    # test_read_and_print()
+    test_function()
+    test_binary_operation()
+    test_unary_operation()
+    test_condition()
+    # example()
+    # my_tests()
