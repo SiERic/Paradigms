@@ -1,4 +1,5 @@
 from yat.model import *
+import sys
 
 
 class PrettyPrinter:
@@ -88,65 +89,108 @@ class PrettyPrinter:
         print(')', end='')
 
 
+def redirect_input():
+    global tmp
+    tmp = sys.stdout
+    sys.stdout = open("output", "w")
+
+
+def redirect_input_back():
+    global tmp
+    sys.stdout.close()
+    fin = open("output", "r")
+    inp = fin.read()
+    sys.stdout = tmp
+    fin.close()
+    return inp
+
+
 def test_number():
+    redirect_input()
     ten = Number(10)
     printer = PrettyPrinter()
     printer.visit(ten)
+    inp = redirect_input_back()
+    assert inp == "10;\n"
 
 
 def test_reference():
+    redirect_input()
     reference = Reference('x')
     printer = PrettyPrinter()
     printer.visit(reference)
+    inp = redirect_input_back()
+    assert inp == "x;\n"
 
 
 def test_read():
+    redirect_input()
     read = Read('x')
     printer = PrettyPrinter()
     printer.visit(read)
+    inp = redirect_input_back()
+    assert inp == "read x;\n"
 
 
 def test_print():
+    redirect_input()
     number = Number(42)
     print = Print(number)
     printer = PrettyPrinter()
     printer.visit(print)
+    inp = redirect_input_back()
+    assert inp == "print 42;\n"
 
 
 def test_function_definition():
+    redirect_input()
     function = Function([], [])
     definition = FunctionDefinition('foo', function)
     printer = PrettyPrinter()
     printer.visit(definition)
+    inp = redirect_input_back()
+    assert inp == "def foo() {\n};\n"
 
 
 def test_unary_operation():
+    redirect_input()
     number = Number(42)
     unary = UnaryOperation('-', number)
     printer = PrettyPrinter()
     printer.visit(unary)
+    inp = redirect_input_back()
+    assert inp == "-42;\n"
 
 
 def test_binary_operation():
+    redirect_input()
     n0, n1, n2 = Number(1), Number(2), Number(3)
     add = BinaryOperation(n1, '+', n2)
     mul = BinaryOperation(n0, '*', add)
     printer = PrettyPrinter()
     printer.visit(mul)
+    inp = redirect_input_back()
+    assert inp == "1 * (2 + 3);\n"
 
 
 def test_conditional():
+    redirect_input()
     number = Number(42)
     conditional = Conditional(number, [], [])
     printer = PrettyPrinter()
     printer.visit(conditional)
+    inp = redirect_input_back()
+    assert inp == "if (42) {\n};\n"
 
 
 def test_function_call():
+    redirect_input()
     reference = Reference("foo")
     call = FunctionCall(reference, [Number(1), Number(2), Number(3)])
     printer = PrettyPrinter()
     printer.visit(call)
+    inp = redirect_input_back()
+    assert inp == "foo(1, 2, 3);\n"
 
 
 def big_test():
@@ -161,7 +205,7 @@ def big_test():
                                                 [Reference('b')])]))
 
     printer.visit(q1)
-    q2 = FunctionDefinition('print_max', 
+    q2 = FunctionDefinition('print_max',
                             Function((),
                                      [Read('x'),
                                       Read('y'),
@@ -173,13 +217,14 @@ def big_test():
 
 
 if __name__ == '__main__':
-    # test_number()
-    # test_reference()
-    # test_read()
-    # test_print()
-    # test_function_definition()
-    # test_unary_operation()
-    # test_binary_operation()
-    # test_conditional()
-    # test_function_call()
-    big_test()
+    test_number()
+    test_reference()
+    test_read()
+    test_print()
+    test_function_definition()
+    test_unary_operation()
+    test_binary_operation()
+    test_conditional()
+    test_function_call()
+
+    # big_test()
