@@ -34,7 +34,7 @@ delete _ Nil = Nil
 delete key (Node k v Nil Nil) | key == k   = Nil
                               | otherwise  = (Node k v Nil Nil)
 delete key (Node k v l Nil) | key < k   = Node k v (delete key l) Nil
-	                        | key == k  = l
+                            | key == k  = l
                             | otherwise = (Node k v l Nil)
 delete key (Node k v l r) | key < k   = Node k v (delete key l) r
                           | key == k  = (Node (fst new_root) (snd new_root) l new_tree)
